@@ -27,6 +27,7 @@ async function CreateOtp(req, res) {
 
 async function VerifyOTP(req, res) {
     const { email, otp } = req.body;
+    console.log(req.body);
     try {
         const Verify = await validateOtp.findOne({ where: { email, otp } });
         if (Verify) {
@@ -46,7 +47,8 @@ async function CreateUser(req, res) {
         let userRegistration;
         const isExist = await RegistrationDetails.findOne({ where: { email } });
         if (isExist) {
-            res.status(501).json({ msg: 'user registered already , please login to continue' })
+            await RegistrationDetails.update({ password , confirmPassword} , {where : {email}});
+            res.status(201).json({ msg: 'user registered successfully' });
         } else {
             if (!validUser) {
                 res.status(400).json({ error: "sorry you are not authenticated please verifyOtp to continue" });
