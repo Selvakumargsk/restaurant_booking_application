@@ -15,7 +15,6 @@ async function CreateOtp(req, res) {
         }
         if (validate) {
             sendOTPEmail(email, validate.otp);
-            console.log(`created successfully ${validate.otp} to ${email}`);
             res.status(201).json({ msg: 'otp sent to the email' })
         }
 
@@ -42,19 +41,19 @@ async function VerifyOTP(req, res) {
 
 async function CreateUser(req, res) {
     try {
-        const { email, password, confirmPassword } = req.body;
+        const { email, password, confirmPassword , username} = req.body;
         const validUser = await validateOtp.findOne({ where: { email } });
         let userRegistration;
         const isExist = await RegistrationDetails.findOne({ where: { email } });
         if (isExist) {
-            await RegistrationDetails.update({ password , confirmPassword} , {where : {email}});
+            await RegistrationDetails.update({ password , confirmPassword , username} , {where : {email}});
             res.status(201).json({ msg: 'user registered successfully' });
         } else {
             if (!validUser) {
                 res.status(400).json({ error: "sorry you are not authenticated please verifyOtp to continue" });
             } else {
                 await validateOtp.destroy({ where: { email } });
-                userRegistration = await RegistrationDetails.create({ id: validUser.id, email, password, confirmPassword });
+                userRegistration = await RegistrationDetails.create({ id: validUser.id, email, password, confirmPassword , username});
                 res.status(201).json({ msg: 'user registered successfully' });
             }
         }
@@ -63,6 +62,21 @@ async function CreateUser(req, res) {
     }
 }
 
+async function getUsers(req , res) {
+    try{
+        const { adminId } =  req.body;
+        if(adminId){
+            const userList = await RegistrationDetails.findAll();
+            res.status(200).json({msg : 'userList fetched successfully' , userList});
+        }else{
+            res.status(400).json({ error: "sorry you are not authenticated" });
+        }
 
-module.exports = { CreateOtp, VerifyOTP, CreateUser }
+    }catch(err){
+        res.status(500).json({ msg: 'error occured ', err }); 
+    }
+}
+
+
+module.exports = { CreateOtp, VerifyOTP, CreateUser , getUsers }
 
